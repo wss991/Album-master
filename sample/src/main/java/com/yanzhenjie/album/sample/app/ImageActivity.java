@@ -83,7 +83,7 @@ public class ImageActivity extends AppCompatActivity {
                 .multipleChoice()
                 .camera(true)
                 .userGPU(true)
-                .cameraisPortrait(false)
+                .cameraisPortrait(true)
                 .cameraFilter(new MyLocationStyleFilter(BitmapFactory.decodeResource(getResources(),R.drawable.ic_logo_white)))
                 .columnCount(2)
                 .selectCount(6)

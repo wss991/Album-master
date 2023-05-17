@@ -21,7 +21,6 @@ import android.widget.TextView;
 import com.daasuu.gpuv.camerarecorder.CameraRecordListener;
 import com.daasuu.gpuv.camerarecorder.GPUCameraRecorderBuilder;
 import com.daasuu.gpuv.camerarecorder.LensFacing;
-import com.yanzhenjie.album.Album;
 import com.yanzhenjie.album.R;
 import com.yanzhenjie.album.mvp.BaseActivity;
 import com.yanzhenjie.album.util.SystemBar;
@@ -319,5 +318,13 @@ public class CpuCameraActivity extends BaseActivity {
         outState.putString(INSTANCE_CAMERA_FILE_PATH, filepath);
         outState.putBoolean(INSTANCE_CAMERA_IS_VIDEO, isVideo);
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (GPUCameraRecorder!=null){
+            GPUCameraRecorder.release();
+        }
     }
 }
