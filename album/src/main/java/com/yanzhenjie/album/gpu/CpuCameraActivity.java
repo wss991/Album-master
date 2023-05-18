@@ -79,7 +79,7 @@ public class CpuCameraActivity extends BaseActivity {
 
         }
         recordBtn = findViewById(R.id.take);
-        if (!isPortrait) {
+        if (isPortrait) {
             videoWidth = 1280;
             videoHeight = 720;
             cameraWidth = 1280;
@@ -320,11 +320,5 @@ public class CpuCameraActivity extends BaseActivity {
         super.onSaveInstanceState(outState);
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (GPUCameraRecorder!=null){
-            GPUCameraRecorder.release();
-        }
-    }
+
 }
