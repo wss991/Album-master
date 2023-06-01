@@ -15,7 +15,6 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.TextView;
 
 
 import com.daasuu.gpuv.camerarecorder.CameraRecordListener;
@@ -24,6 +23,7 @@ import com.daasuu.gpuv.camerarecorder.LensFacing;
 import com.yanzhenjie.album.R;
 import com.yanzhenjie.album.mvp.BaseActivity;
 import com.yanzhenjie.album.util.SystemBar;
+import com.yanzhenjie.album.widget.CaptureView;
 
 
 import java.io.File;
@@ -41,7 +41,7 @@ public class CpuCameraActivity extends BaseActivity {
     private SampleCameraGLView sampleGLView;
     protected com.daasuu.gpuv.camerarecorder.GPUCameraRecorder GPUCameraRecorder;
     private String filepath;
-    private TextView recordBtn;
+    private CaptureView recordBtn;
     protected LensFacing lensFacing = LensFacing.BACK;
     protected int cameraWidth = 1280;
     protected int cameraHeight = 720;
@@ -79,22 +79,28 @@ public class CpuCameraActivity extends BaseActivity {
 
         }
         recordBtn = findViewById(R.id.take);
-        if (isPortrait) {
-            videoWidth = 1280;
-            videoHeight = 720;
-            cameraWidth = 1280;
-            cameraHeight = 720;
-        } else {
+        if (!isPortrait) {
             videoWidth = 720;
             videoHeight = 1280;
             cameraWidth = 720;
             cameraHeight = 1280;
+        } else {
+            videoWidth = 1280;
+            videoHeight = 720;
+            cameraWidth = 1280;
+            cameraHeight = 720;
         }
         if (isVideo) {
-            recordBtn.setText("开始录制");
+//            recordBtn.setText("开始录制");
         } else {
-            recordBtn.setText("拍照");
+//            recordBtn.setText("拍照");
         }
+        findViewById(R.id.switch_flash).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                GPUCameraRecorder.switchFlashMode();
+            }
+        });
         recordBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -102,15 +108,15 @@ public class CpuCameraActivity extends BaseActivity {
                     if (GPUCameraRecorder != null) {
                         if (isStartRecord) {
                             GPUCameraRecorder.stop();
-                            recordBtn.setText("开始录像");
+//                            recordBtn.setText("开始录像");
                         } else {
                             GPUCameraRecorder.start(filepath);
-                            recordBtn.setText("停止录像");
+//                            recordBtn.setText("停止录像");
                         }
                         isStartRecord = !isStartRecord;
                     }
                 } else {
-                    recordBtn.setText("拍照");
+//                    recordBtn.setText("拍照");
                     captureBitmap(new BitmapReadyCallbacks() {
                         @Override
                         public void onBitmapReady(final Bitmap bitmap) {
@@ -319,6 +325,4 @@ public class CpuCameraActivity extends BaseActivity {
         outState.putBoolean(INSTANCE_CAMERA_IS_VIDEO, isVideo);
         super.onSaveInstanceState(outState);
     }
-
-
 }
