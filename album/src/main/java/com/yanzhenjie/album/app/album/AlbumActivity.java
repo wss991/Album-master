@@ -20,7 +20,6 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.PopupMenu;
@@ -322,6 +321,7 @@ public class AlbumActivity extends BaseActivity implements
             File file = new File(mAlbumFolders.get(mCurrentFolder).getAlbumFiles().get(0).getPath());
             filePath = AlbumUtils.randomJPGPath(file.getParentFile());
         }
+
       //  File file = new File(Environment.getExternalStorageDirectory(),"/.jwt/"+getApplicationInfo().packageName+"/");
       //  filePath = AlbumUtils.randomJPGPath(file);
         ImageCameraWrapper wrapper = Album.camera(this)

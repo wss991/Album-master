@@ -112,7 +112,7 @@ public abstract class BasicChoiceWrapper<Returner extends BasicChoiceWrapper, Re
     }
 
     public Returner userGPU(boolean userGPU) {
-        GPUCamreaManager.getInstance().setUseGPUCamera(userGPU);
+       // GPUCamreaManager.getInstance().setUseGPUCamera(userGPU);
         return (Returner) this;
     }
 }

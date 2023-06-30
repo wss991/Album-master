@@ -35,6 +35,7 @@ import android.provider.MediaStore;
 import android.support.annotation.ColorInt;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
+import android.support.v4.content.FileProvider;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -44,6 +45,7 @@ import android.webkit.MimeTypeMap;
 
 
 import com.yanzhenjie.album.gpu.CpuCameraActivity;
+import com.yanzhenjie.album.provider.CameraFileProvider;
 import com.yanzhenjie.album.widget.divider.Api20ItemDivider;
 import com.yanzhenjie.album.widget.divider.Api21ItemDivider;
 import com.yanzhenjie.album.widget.divider.Divider;
@@ -161,11 +163,13 @@ public class AlbumUtils {
     @NonNull
     public static Uri getUri(@NonNull Context context, @NonNull String outPath) {
         Uri uri;
+        File file = new File(outPath);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            uri = Uri.fromFile(new File(outPath));
+            uri = Uri.fromFile(file);
         } else {
-            uri = Uri.parse(outPath);
+            uri =  FileProvider.getUriForFile(context, CameraFileProvider.getProviderName(context), file);
         }
+
         return uri;
     }
 
@@ -198,7 +202,7 @@ public class AlbumUtils {
         String filePath;
         if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
             filePath = randomJPGPath(context.getCacheDir());
-        }else{
+        } else {
             filePath = AlbumUtils.randomJPGPath(context);
         }
         return filePath;
@@ -266,21 +270,6 @@ public class AlbumUtils {
         String outFilePath = AlbumUtils.getNowDateTime("yyyyMMdd_HHmmssSSS") + "_" + getMD5ForString(UUID.randomUUID().toString()) + extension;
         File file = new File(bucket, outFilePath);
         return file.getAbsolutePath();
-    }
-
-    public static String newTakePhotoPath(Context context) {
-        String status = Environment.getExternalStorageState();
-        // 判断是否有SD卡,优先使用SD卡存储,当没有SD卡时使用手机存储
-        Uri uri;
-        if (status.equals(Environment.MEDIA_MOUNTED)) {
-            uri = context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, new ContentValues());
-        } else {
-            uri = context.getContentResolver().insert(MediaStore.Images.Media.INTERNAL_CONTENT_URI, new ContentValues());
-        }
-        if (uri != null) {
-            return uri.toString();
-        }
-        return null;
     }
 
     /**
@@ -480,12 +469,13 @@ public class AlbumUtils {
         }
         return md5Buffer.toString();
     }
+
     public static void takeGPUImage(@NonNull Activity activity,
                                     int requestCode,
                                     String outPath) {
         Intent intent = new Intent(activity, CpuCameraActivity.class);
-        intent.putExtra(INSTANCE_CAMERA_FILE_PATH,outPath);
-        intent.putExtra(INSTANCE_CAMERA_IS_VIDEO,false);
+        intent.putExtra(INSTANCE_CAMERA_FILE_PATH, outPath);
+        intent.putExtra(INSTANCE_CAMERA_IS_VIDEO, false);
         activity.startActivityForResult(intent, requestCode);
 
     }
@@ -495,9 +485,53 @@ public class AlbumUtils {
                                     int requestCode,
                                     String outPath) {
         Intent intent = new Intent(activity, CpuCameraActivity.class);
-        intent.putExtra(INSTANCE_CAMERA_FILE_PATH,outPath);
-        intent.putExtra(INSTANCE_CAMERA_IS_VIDEO,true);
+        intent.putExtra(INSTANCE_CAMERA_FILE_PATH, outPath);
+        intent.putExtra(INSTANCE_CAMERA_IS_VIDEO, true);
         activity.startActivityForResult(intent, requestCode);
 
     }
+
+
+    /**
+     * @param context
+     * @param parent  api>=29 以上传入的 类似 Environment.DIRECTORY_PICTURES 或者 xx/xx 在那个文件下创建该文件
+     *                api<29 以上传入的 传入的是完整路径 story/xx/xx
+     * @return
+     */
+    public static String newTakePhotoPath(Context context, String parent) {
+        String status = Environment.getExternalStorageState();
+        // 判断是否有SD卡,优先使用SD卡存储,当没有SD卡时使用手机存储
+        ContentValues contentValues = new ContentValues();
+        String fileName = "IMG_" + getNowDateTime("yyyyMMddHHmmssSSS");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (parent == null || "".equals(parent)) {
+                parent = Environment.DIRECTORY_MOVIES;
+            }
+
+            contentValues.put(MediaStore.Images.ImageColumns.RELATIVE_PATH, parent);
+        } else {
+            if (parent == null || "".equals(parent)) {
+                if (status.equals(Environment.MEDIA_MOUNTED)) {
+                    parent = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath();
+                } else {
+                    parent = context.getFilesDir().getAbsolutePath() + File.separator + Environment.DIRECTORY_PICTURES;
+                }
+            }
+            String realPath = parent + File.separator + "fileName" + ".jpeg";
+            contentValues.put(MediaStore.Images.ImageColumns.DATA, realPath);
+        }
+        contentValues.put(MediaStore.Images.ImageColumns.DISPLAY_NAME, fileName);
+        Uri uri;
+        if (status.equals(Environment.MEDIA_MOUNTED)) {
+            uri = context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, new ContentValues());
+        } else {
+            uri = context.getContentResolver().insert(MediaStore.Images.Media.INTERNAL_CONTENT_URI, new ContentValues());
+        }
+        if (uri != null) {
+            return uri.toString();
+        }
+        return null;
+    }
+
+
 }
