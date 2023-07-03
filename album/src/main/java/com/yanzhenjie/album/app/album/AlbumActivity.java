@@ -315,12 +315,7 @@ public class AlbumActivity extends BaseActivity implements
 
     private void takePicture() {
         String filePath;
-        if (mCurrentFolder == 0) {
-            filePath = AlbumUtils.randomJPGPath();
-        } else {
-            File file = new File(mAlbumFolders.get(mCurrentFolder).getAlbumFiles().get(0).getPath());
-            filePath = AlbumUtils.randomJPGPath(file.getParentFile());
-        }
+        filePath = AlbumUtils.newTakePhotoPath(this,null);
 
       //  File file = new File(Environment.getExternalStorageDirectory(),"/.jwt/"+getApplicationInfo().packageName+"/");
       //  filePath = AlbumUtils.randomJPGPath(file);

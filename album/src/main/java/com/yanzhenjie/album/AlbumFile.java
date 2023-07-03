@@ -83,6 +83,9 @@ public class AlbumFile implements Parcelable, Comparable<AlbumFile> {
      * Enabled.
      */
     private boolean isDisable;
+    private String name;
+    private String realPath;
+
 
     public AlbumFile() {
     }
@@ -211,35 +214,12 @@ public class AlbumFile implements Parcelable, Comparable<AlbumFile> {
         this.isDisable = disable;
     }
 
-    protected AlbumFile(Parcel in) {
-        mPath = in.readString();
-        mBucketName = in.readString();
-        mMimeType = in.readString();
-        mAddDate = in.readLong();
-        mLatitude = in.readFloat();
-        mLongitude = in.readFloat();
-        mSize = in.readLong();
-        mDuration = in.readLong();
-        mThumbPath = in.readString();
-        mMediaType = in.readInt();
-        isChecked = in.readByte() != 0;
-        isDisable = in.readByte() != 0;
+    public String getName() {
+        return name;
     }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(mPath);
-        dest.writeString(mBucketName);
-        dest.writeString(mMimeType);
-        dest.writeLong(mAddDate);
-        dest.writeFloat(mLatitude);
-        dest.writeFloat(mLongitude);
-        dest.writeLong(mSize);
-        dest.writeLong(mDuration);
-        dest.writeString(mThumbPath);
-        dest.writeInt(mMediaType);
-        dest.writeByte((byte) (isChecked ? 1 : 0));
-        dest.writeByte((byte) (isDisable ? 1 : 0));
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
@@ -247,10 +227,62 @@ public class AlbumFile implements Parcelable, Comparable<AlbumFile> {
         return 0;
     }
 
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.mPath);
+        dest.writeString(this.mBucketName);
+        dest.writeString(this.mMimeType);
+        dest.writeLong(this.mAddDate);
+        dest.writeFloat(this.mLatitude);
+        dest.writeFloat(this.mLongitude);
+        dest.writeLong(this.mSize);
+        dest.writeLong(this.mDuration);
+        dest.writeString(this.mThumbPath);
+        dest.writeInt(this.mMediaType);
+        dest.writeByte(this.isChecked ? (byte) 1 : (byte) 0);
+        dest.writeByte(this.isDisable ? (byte) 1 : (byte) 0);
+        dest.writeString(this.name);
+        dest.writeString(this.realPath);
+    }
+
+    public void readFromParcel(Parcel source) {
+        this.mPath = source.readString();
+        this.mBucketName = source.readString();
+        this.mMimeType = source.readString();
+        this.mAddDate = source.readLong();
+        this.mLatitude = source.readFloat();
+        this.mLongitude = source.readFloat();
+        this.mSize = source.readLong();
+        this.mDuration = source.readLong();
+        this.mThumbPath = source.readString();
+        this.mMediaType = source.readInt();
+        this.isChecked = source.readByte() != 0;
+        this.isDisable = source.readByte() != 0;
+        this.name = source.readString();
+        this.realPath = source.readString();
+    }
+
+    protected AlbumFile(Parcel in) {
+        this.mPath = in.readString();
+        this.mBucketName = in.readString();
+        this.mMimeType = in.readString();
+        this.mAddDate = in.readLong();
+        this.mLatitude = in.readFloat();
+        this.mLongitude = in.readFloat();
+        this.mSize = in.readLong();
+        this.mDuration = in.readLong();
+        this.mThumbPath = in.readString();
+        this.mMediaType = in.readInt();
+        this.isChecked = in.readByte() != 0;
+        this.isDisable = in.readByte() != 0;
+        this.name = in.readString();
+        this.realPath = in.readString();
+    }
+
     public static final Creator<AlbumFile> CREATOR = new Creator<AlbumFile>() {
         @Override
-        public AlbumFile createFromParcel(Parcel in) {
-            return new AlbumFile(in);
+        public AlbumFile createFromParcel(Parcel source) {
+            return new AlbumFile(source);
         }
 
         @Override
@@ -259,4 +291,11 @@ public class AlbumFile implements Parcelable, Comparable<AlbumFile> {
         }
     };
 
+    public String getRealPath() {
+        return realPath;
+    }
+
+    public void setRealPath(String realPath) {
+        this.realPath = realPath;
+    }
 }

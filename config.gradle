@@ -8,11 +8,11 @@ ext {
 
     android = [
             applicationId    : "com.yanzhenjie.album.sample",
-            compileSdkVersion: 30,
+            compileSdkVersion: 31,
             buildToolsVersion: "28.0.3",
 
             minSdkVersion    : 23,
-            targetSdkVersion : 30,
+            targetSdkVersion : 31,
 
             versionCode      : 27,
             versionName      : "2.1.3",

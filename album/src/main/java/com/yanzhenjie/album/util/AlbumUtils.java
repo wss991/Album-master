@@ -42,6 +42,7 @@ import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.webkit.MimeTypeMap;
+import android.webkit.URLUtil;
 
 
 import com.yanzhenjie.album.gpu.CpuCameraActivity;
@@ -162,14 +163,17 @@ public class AlbumUtils {
      */
     @NonNull
     public static Uri getUri(@NonNull Context context, @NonNull String outPath) {
-        Uri uri;
-        File file = new File(outPath);
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            uri = Uri.fromFile(file);
-        } else {
-            uri =  FileProvider.getUriForFile(context, CameraFileProvider.getProviderName(context), file);
-        }
+        Uri uri = null;
+        if (URLUtil.isContentUrl(outPath)){
+            uri = Uri.parse(outPath);
+        }else{
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                uri = FileProvider.getUriForFile(context, CameraFileProvider.getProviderName(context), new File(outPath));
 
+            } else {
+                uri = Uri.fromFile(new File(outPath));
+            }
+        }
         return uri;
     }
 
@@ -496,42 +500,31 @@ public class AlbumUtils {
      * @param context
      * @param parent  api>=29 以上传入的 类似 Environment.DIRECTORY_PICTURES 或者 xx/xx 在那个文件下创建该文件
      *                api<29 以上传入的 传入的是完整路径 story/xx/xx
+     *                相对路径
+     *                注意：不能有parent处理
      * @return
      */
-    public static String newTakePhotoPath(Context context, String parent) {
+    public static String newTakePhotoPath(Context context) {
         String status = Environment.getExternalStorageState();
         // 判断是否有SD卡,优先使用SD卡存储,当没有SD卡时使用手机存储
         ContentValues contentValues = new ContentValues();
         String fileName = "IMG_" + getNowDateTime("yyyyMMddHHmmssSSS");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (parent == null || "".equals(parent)) {
-                parent = Environment.DIRECTORY_MOVIES;
-            }
-
-            contentValues.put(MediaStore.Images.ImageColumns.RELATIVE_PATH, parent);
-        } else {
-            if (parent == null || "".equals(parent)) {
-                if (status.equals(Environment.MEDIA_MOUNTED)) {
-                    parent = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath();
-                } else {
-                    parent = context.getFilesDir().getAbsolutePath() + File.separator + Environment.DIRECTORY_PICTURES;
-                }
-            }
-            String realPath = parent + File.separator + "fileName" + ".jpeg";
-            contentValues.put(MediaStore.Images.ImageColumns.DATA, realPath);
+            contentValues.put(MediaStore.Images.ImageColumns.RELATIVE_PATH, Environment.DIRECTORY_DCIM);
         }
         contentValues.put(MediaStore.Images.ImageColumns.DISPLAY_NAME, fileName);
         Uri uri;
         if (status.equals(Environment.MEDIA_MOUNTED)) {
-            uri = context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, new ContentValues());
+            uri = context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
         } else {
-            uri = context.getContentResolver().insert(MediaStore.Images.Media.INTERNAL_CONTENT_URI, new ContentValues());
+            uri = context.getContentResolver().insert(MediaStore.Images.Media.INTERNAL_CONTENT_URI, contentValues);
         }
         if (uri != null) {
             return uri.toString();
         }
         return null;
     }
+
 
 
 }

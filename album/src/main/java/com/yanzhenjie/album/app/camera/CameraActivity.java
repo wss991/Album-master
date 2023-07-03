@@ -31,8 +31,6 @@ import com.yanzhenjie.album.mvp.BaseActivity;
 import com.yanzhenjie.album.util.AlbumUtils;
 import com.yanzhenjie.album.util.SystemBar;
 
-import java.io.File;
-
 /**
  * Created by YanZhenjie on 2017/8/16.
  */
@@ -88,7 +86,7 @@ public class CameraActivity extends BaseActivity {
             switch (mFunction) {
                 case Album.FUNCTION_CAMERA_IMAGE: {
                     if (TextUtils.isEmpty(mCameraFilePath))
-                        mCameraFilePath = AlbumUtils.randomJPGPath(this);
+                        mCameraFilePath = AlbumUtils.newTakePhotoPath(this);
                     requestPermission(PERMISSION_TAKE_PICTURE, CODE_PERMISSION_IMAGE);
                     break;
                 }
@@ -203,6 +201,7 @@ public class CameraActivity extends BaseActivity {
         if (sCancel != null) sCancel.onAction("User canceled.");
         sResult = null;
         sCancel = null;
+
         finish();
     }
 }

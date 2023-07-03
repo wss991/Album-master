@@ -16,10 +16,13 @@
 package com.yanzhenjie.album.app.album.data;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
+import android.os.Build;
 import android.provider.MediaStore;
 import android.support.annotation.WorkerThread;
+import android.util.Log;
 
 import com.yanzhenjie.album.AlbumFile;
 import com.yanzhenjie.album.AlbumFolder;
@@ -62,8 +65,11 @@ public class MediaReader {
             MediaStore.Images.Media.DATE_ADDED,
             MediaStore.Images.Media.LATITUDE,
             MediaStore.Images.Media.LONGITUDE,
-            MediaStore.Images.Media.SIZE
+            MediaStore.Images.Media.SIZE,
+            MediaStore.Images.Media.DISPLAY_NAME,
+            MediaStore.Images.Media._ID
     };
+    private static final String TAG = "MediaReader";
 
     /**
      * Scan for image files.
@@ -87,17 +93,25 @@ public class MediaReader {
                 float latitude = cursor.getFloat(4);
                 float longitude = cursor.getFloat(5);
                 long size = cursor.getLong(6);
+                String name = cursor.getString(7);
+                int photoId = cursor.getInt(8);
+
 
                 AlbumFile imageFile = new AlbumFile();
                 imageFile.setMediaType(AlbumFile.TYPE_IMAGE);
-                imageFile.setPath(path);
+                imageFile.setRealPath(path);
                 imageFile.setBucketName(bucketName);
                 imageFile.setMimeType(mimeType);
                 imageFile.setAddDate(addDate);
                 imageFile.setLatitude(latitude);
                 imageFile.setLongitude(longitude);
                 imageFile.setSize(size);
-
+                imageFile.setName(name);
+                Log.e(TAG, "scanImageFile: " + name);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    path = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, photoId).toString();
+                }
+                imageFile.setPath(path);
                 if (mSizeFilter != null && mSizeFilter.filter(size)) {
                     if (!mFilterVisibility) continue;
                     imageFile.setDisable(true);
