@@ -19,12 +19,14 @@ import static com.yanzhenjie.album.gpu.CpuCameraActivity.INSTANCE_CAMERA_FILE_PA
 import static com.yanzhenjie.album.gpu.CpuCameraActivity.INSTANCE_CAMERA_IS_VIDEO;
 
 import android.app.Activity;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -164,9 +166,9 @@ public class AlbumUtils {
     @NonNull
     public static Uri getUri(@NonNull Context context, @NonNull String outPath) {
         Uri uri = null;
-        if (URLUtil.isContentUrl(outPath)){
+        if (URLUtil.isContentUrl(outPath)) {
             uri = Uri.parse(outPath);
-        }else{
+        } else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 uri = FileProvider.getUriForFile(context, CameraFileProvider.getProviderName(context), new File(outPath));
 
@@ -546,4 +548,19 @@ public class AlbumUtils {
         return null;
     }
 
+    public static String getRealPath(Context context, Uri uri) {
+        long id = ContentUris.parseId(uri);
+        String[] projection = new String[]{MediaStore.Files.FileColumns.DATA};
+        String selection = MediaStore.Files.FileColumns._ID + " = ?";
+        String[] selectionArgs = new String[]{String.valueOf(id)};
+        Cursor cursor = context.getContentResolver().query(MediaStore.Files.getContentUri("external")
+                , projection, selection, selectionArgs, null);
+        if (cursor != null && cursor.getColumnCount() > 0) {
+            cursor.moveToFirst();
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            String path = cursor.getString(column_index);
+            return path;
+        }
+        return uri.toString();
+    }
 }

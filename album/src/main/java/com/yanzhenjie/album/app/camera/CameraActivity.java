@@ -35,6 +35,7 @@ import com.yanzhenjie.album.gpu.GPUCamreaManager;
 import com.yanzhenjie.album.mvp.BaseActivity;
 import com.yanzhenjie.album.util.AlbumUtils;
 import com.yanzhenjie.album.util.SystemBar;
+import com.yanzhenjie.mediascanner.MediaScanner;
 
 import java.io.File;
 
@@ -197,7 +198,17 @@ public class CameraActivity extends BaseActivity {
         }
     }
 
+    private MediaScanner mMediaScanner;
+
     private void callbackResult() {
+        if (mMediaScanner == null) {
+            mMediaScanner = new MediaScanner(this);
+        }
+        String path = mCameraFilePath;
+        if (URLUtil.isContentUrl(mCameraFilePath)) {
+            path = AlbumUtils.getRealPath(this,Uri.parse(mCameraFilePath));
+        }
+        mMediaScanner.scan(path);
         if (sResult != null) sResult.onAction(mCameraFilePath);
         sResult = null;
         sCancel = null;

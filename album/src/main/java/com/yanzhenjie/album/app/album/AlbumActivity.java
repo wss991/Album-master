@@ -18,7 +18,6 @@ package com.yanzhenjie.album.app.album;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -48,7 +47,6 @@ import com.yanzhenjie.album.util.AlbumUtils;
 import com.yanzhenjie.album.widget.LoadingDialog;
 import com.yanzhenjie.mediascanner.MediaScanner;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -127,7 +125,7 @@ public class AlbumActivity extends BaseActivity implements
         mLimitDuration = argument.getLong(Album.KEY_INPUT_CAMERA_DURATION);
         mLimitBytes = argument.getLong(Album.KEY_INPUT_CAMERA_BYTES);
         mFilterVisibility = argument.getBoolean(Album.KEY_INPUT_FILTER_VISIBILITY);
-        if (mHasCamera){
+        if (mHasCamera) {
             this.mRealCamera = (Class) argument.getSerializable(Album.KEY_INPUT_CAMERA_ACTIVITY);
         }
     }
@@ -317,13 +315,13 @@ public class AlbumActivity extends BaseActivity implements
         String filePath;
         filePath = AlbumUtils.newTakePhotoPath(this);
 
-      //  File file = new File(Environment.getExternalStorageDirectory(),"/.jwt/"+getApplicationInfo().packageName+"/");
-      //  filePath = AlbumUtils.randomJPGPath(file);
+        //  File file = new File(Environment.getExternalStorageDirectory(),"/.jwt/"+getApplicationInfo().packageName+"/");
+        //  filePath = AlbumUtils.randomJPGPath(file);
         ImageCameraWrapper wrapper = Album.camera(this)
                 .image()
                 .filePath(filePath)
                 .onResult(mCameraAction);
-        if (mRealCamera!=null){
+        if (mRealCamera != null) {
             wrapper.to(mRealCamera);
         }
         wrapper.start();
@@ -345,16 +343,13 @@ public class AlbumActivity extends BaseActivity implements
     private Action<String> mCameraAction = new Action<String>() {
         @Override
         public void onAction(@NonNull String result) {
-            String a  = result;
-            Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+            String a = result;
+           /* Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
             File f = new File(result);
             Uri contentUri = Uri.fromFile(f);
             mediaScanIntent.setData(contentUri);
-            sendBroadcast(mediaScanIntent);
-            if (mMediaScanner == null) {
-                mMediaScanner = new MediaScanner(AlbumActivity.this);
-            }
-            mMediaScanner.scan(a);
+            sendBroadcast(mediaScanIntent);*/
+
 
             PathConversion conversion = new PathConversion(sSizeFilter, sMimeFilter, sDurationFilter);
             PathConvertTask task = new PathConvertTask(conversion, AlbumActivity.this);
