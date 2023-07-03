@@ -15,14 +15,11 @@
  */
 package com.yanzhenjie.album.app.camera;
 
-import android.content.ContentUris;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
@@ -217,7 +214,7 @@ public class CameraActivity extends BaseActivity {
 
     private void callbackCancel() {
         if (URLUtil.isContentUrl(mCameraFilePath)) {
-            long id = ContentUris.parseId(Uri.parse(mCameraFilePath));
+           /* long id = ContentUris.parseId(Uri.parse(mCameraFilePath));
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 Bundle bundle = new Bundle();
                 bundle.putString(MediaStore.Files.FileColumns._ID, String.valueOf(id));
@@ -230,7 +227,8 @@ public class CameraActivity extends BaseActivity {
                 getContentResolver().delete(MediaStore.Files.getContentUri("external")
                         , selection, selectionArg);
 
-            }
+            }*/
+            getContentResolver().delete(Uri.parse(mCameraFilePath),null,null);
         } else {
             new File(mCameraFilePath).deleteOnExit();
         }
