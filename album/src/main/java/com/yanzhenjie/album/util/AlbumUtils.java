@@ -525,6 +525,25 @@ public class AlbumUtils {
         return null;
     }
 
-
+    public static String newTakeVideoPath(Context context) {
+        String status = Environment.getExternalStorageState();
+        // 判断是否有SD卡,优先使用SD卡存储,当没有SD卡时使用手机存储
+        ContentValues contentValues = new ContentValues();
+        String fileName = "VD_" + getNowDateTime("yyyyMMddHHmmssSSS");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            contentValues.put(MediaStore.Video.VideoColumns.RELATIVE_PATH, Environment.DIRECTORY_MOVIES);
+        }
+        contentValues.put(MediaStore.Video.VideoColumns.DISPLAY_NAME, fileName);
+        Uri uri;
+        if (status.equals(Environment.MEDIA_MOUNTED)) {
+            uri = context.getContentResolver().insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
+        } else {
+            uri = context.getContentResolver().insert(MediaStore.Video.Media.INTERNAL_CONTENT_URI, contentValues);
+        }
+        if (uri != null) {
+            return uri.toString();
+        }
+        return null;
+    }
 
 }

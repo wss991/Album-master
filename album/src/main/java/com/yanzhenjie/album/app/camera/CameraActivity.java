@@ -15,13 +15,18 @@
  */
 package com.yanzhenjie.album.app.camera;
 
+import android.content.ContentUris;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
+import android.webkit.URLUtil;
 
 import com.yanzhenjie.album.Action;
 import com.yanzhenjie.album.Album;
@@ -30,6 +35,8 @@ import com.yanzhenjie.album.gpu.GPUCamreaManager;
 import com.yanzhenjie.album.mvp.BaseActivity;
 import com.yanzhenjie.album.util.AlbumUtils;
 import com.yanzhenjie.album.util.SystemBar;
+
+import java.io.File;
 
 /**
  * Created by YanZhenjie on 2017/8/16.
@@ -92,7 +99,7 @@ public class CameraActivity extends BaseActivity {
                 }
                 case Album.FUNCTION_CAMERA_VIDEO: {
                     if (TextUtils.isEmpty(mCameraFilePath))
-                        mCameraFilePath = AlbumUtils.randomMP4Path(this);
+                        mCameraFilePath = AlbumUtils.newTakeVideoPath(this);
                     requestPermission(PERMISSION_TAKE_VIDEO, CODE_PERMISSION_VIDEO);
                     break;
                 }
@@ -110,7 +117,7 @@ public class CameraActivity extends BaseActivity {
         outState.putInt(INSTANCE_CAMERA_QUALITY, mQuality);
         outState.putLong(INSTANCE_CAMERA_DURATION, mLimitDuration);
         outState.putLong(INSTANCE_CAMERA_BYTES, mLimitBytes);
-        outState.putSerializable(Album.KEY_INPUT_CAMERA_ACTIVITY,mRealCamera);
+        outState.putSerializable(Album.KEY_INPUT_CAMERA_ACTIVITY, mRealCamera);
         super.onSaveInstanceState(outState);
     }
 
@@ -118,19 +125,18 @@ public class CameraActivity extends BaseActivity {
     protected void onPermissionGranted(int code) {
         switch (code) {
             case CODE_PERMISSION_IMAGE: {
-                if (GPUCamreaManager.getInstance().isUseGPUCamera()){
-                    AlbumUtils.takeGPUImage(this,CODE_ACTIVITY_TAKE_IMAGE,mCameraFilePath);
-                }else{
+                if (GPUCamreaManager.getInstance().isUseGPUCamera()) {
+                    AlbumUtils.takeGPUImage(this, CODE_ACTIVITY_TAKE_IMAGE, mCameraFilePath);
+                } else {
                     AlbumUtils.takeImage(this, CODE_ACTIVITY_TAKE_IMAGE, mCameraFilePath);
                 }
 
                 break;
             }
             case CODE_PERMISSION_VIDEO: {
-                AlbumUtils.takeVideo(this, CODE_ACTIVITY_TAKE_VIDEO, mCameraFilePath, mQuality, mLimitDuration, mLimitBytes);
-                if (GPUCamreaManager.getInstance().isUseGPUCamera()){
-                    AlbumUtils.takeGPUVideo(this,CODE_ACTIVITY_TAKE_IMAGE,mCameraFilePath);
-                }else{
+                if (GPUCamreaManager.getInstance().isUseGPUCamera()) {
+                    AlbumUtils.takeGPUVideo(this, CODE_ACTIVITY_TAKE_IMAGE, mCameraFilePath);
+                } else {
                     AlbumUtils.takeVideo(this, CODE_ACTIVITY_TAKE_VIDEO, mCameraFilePath, mQuality, mLimitDuration, mLimitBytes);
 
                 }
@@ -178,6 +184,7 @@ public class CameraActivity extends BaseActivity {
             case CODE_ACTIVITY_TAKE_IMAGE:
             case CODE_ACTIVITY_TAKE_VIDEO: {
                 if (resultCode == RESULT_OK) {
+                    // data.bundle[mineType]
                     callbackResult();
                 } else {
                     callbackCancel();
@@ -198,6 +205,24 @@ public class CameraActivity extends BaseActivity {
     }
 
     private void callbackCancel() {
+        if (URLUtil.isContentUrl(mCameraFilePath)) {
+            long id = ContentUris.parseId(Uri.parse(mCameraFilePath));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                Bundle bundle = new Bundle();
+                bundle.putString(MediaStore.Files.FileColumns._ID, String.valueOf(id));
+                getContentResolver().delete(MediaStore.Files.getContentUri("external"), bundle);
+            } else {
+                String selection = MediaStore.Files.FileColumns._ID + " = ?";
+                String[] selectionArg = new String[]{
+                        String.valueOf(id)
+                };
+                getContentResolver().delete(MediaStore.Files.getContentUri("external")
+                        , selection, selectionArg);
+
+            }
+        } else {
+            new File(mCameraFilePath).deleteOnExit();
+        }
         if (sCancel != null) sCancel.onAction("User canceled.");
         sResult = null;
         sCancel = null;

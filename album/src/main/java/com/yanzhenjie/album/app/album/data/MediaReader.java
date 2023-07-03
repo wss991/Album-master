@@ -149,7 +149,9 @@ public class MediaReader {
             MediaStore.Video.Media.LATITUDE,
             MediaStore.Video.Media.LONGITUDE,
             MediaStore.Video.Media.SIZE,
-            MediaStore.Video.Media.DURATION
+            MediaStore.Video.Media.DURATION,
+            MediaStore.Video.Media.DISPLAY_NAME,
+            MediaStore.Video.Media._ID
     };
 
     /**
@@ -174,10 +176,11 @@ public class MediaReader {
                 float longitude = cursor.getFloat(5);
                 long size = cursor.getLong(6);
                 long duration = cursor.getLong(7);
+                int videoId = cursor.getInt(9);
 
                 AlbumFile videoFile = new AlbumFile();
                 videoFile.setMediaType(AlbumFile.TYPE_VIDEO);
-                videoFile.setPath(path);
+                videoFile.setRealPath(path);
                 videoFile.setBucketName(bucketName);
                 videoFile.setMimeType(mimeType);
                 videoFile.setAddDate(addDate);
@@ -185,7 +188,10 @@ public class MediaReader {
                 videoFile.setLongitude(longitude);
                 videoFile.setSize(size);
                 videoFile.setDuration(duration);
-
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    path = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, videoId).toString();
+                }
+                videoFile.setPath(path);
                 if (mSizeFilter != null && mSizeFilter.filter(size)) {
                     if (!mFilterVisibility) continue;
                     videoFile.setDisable(true);

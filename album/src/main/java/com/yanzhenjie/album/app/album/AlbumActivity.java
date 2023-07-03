@@ -315,7 +315,7 @@ public class AlbumActivity extends BaseActivity implements
 
     private void takePicture() {
         String filePath;
-        filePath = AlbumUtils.newTakePhotoPath(this,null);
+        filePath = AlbumUtils.newTakePhotoPath(this);
 
       //  File file = new File(Environment.getExternalStorageDirectory(),"/.jwt/"+getApplicationInfo().packageName+"/");
       //  filePath = AlbumUtils.randomJPGPath(file);
@@ -331,12 +331,7 @@ public class AlbumActivity extends BaseActivity implements
 
     private void takeVideo() {
         String filePath;
-        if (mCurrentFolder == 0) {
-            filePath = AlbumUtils.randomMP4Path();
-        } else {
-            File file = new File(mAlbumFolders.get(mCurrentFolder).getAlbumFiles().get(0).getPath());
-            filePath = AlbumUtils.randomMP4Path(file.getParentFile());
-        }
+        filePath = AlbumUtils.newTakeVideoPath(this);
         Album.camera(this)
                 .video()
                 .filePath(filePath)
