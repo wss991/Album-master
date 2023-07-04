@@ -515,6 +515,7 @@ public class AlbumUtils {
             contentValues.put(MediaStore.Images.ImageColumns.RELATIVE_PATH, Environment.DIRECTORY_DCIM);
         }
         contentValues.put(MediaStore.Images.ImageColumns.DISPLAY_NAME, fileName);
+        contentValues.put(MediaStore.Images.ImageColumns.MIME_TYPE, "image/jpeg");
         Uri uri;
         if (status.equals(Environment.MEDIA_MOUNTED)) {
             uri = context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
@@ -536,6 +537,7 @@ public class AlbumUtils {
             contentValues.put(MediaStore.Video.VideoColumns.RELATIVE_PATH, Environment.DIRECTORY_MOVIES);
         }
         contentValues.put(MediaStore.Video.VideoColumns.DISPLAY_NAME, fileName);
+        contentValues.put(MediaStore.Images.ImageColumns.MIME_TYPE, "video/MP4");
         Uri uri;
         if (status.equals(Environment.MEDIA_MOUNTED)) {
             uri = context.getContentResolver().insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
