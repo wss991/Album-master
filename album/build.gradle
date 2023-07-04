@@ -17,6 +17,7 @@ dependencies {
     implementation rootProject.ext.dependencies.design
     implementation rootProject.ext.dependencies.recyclerView
     implementation rootProject.ext.dependencies.cardView
+
     api rootProject.ext.dependencies.mediaScanner
     implementation project(path: ':gpuv')
 }

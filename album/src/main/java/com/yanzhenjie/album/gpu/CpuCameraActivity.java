@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.opengl.GLException;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -112,13 +113,26 @@ public class CpuCameraActivity extends BaseActivity {
                             GPUCameraRecorder.stop();
 //                            recordBtn.setText("开始录像");
                         } else {
-                            if (URLUtil.isContentUrl(filepath)) {
-                                realPath = AlbumUtils.getRealPath(CpuCameraActivity.this, Uri.parse(filepath));
+                            try {
+                                if (URLUtil.isContentUrl(filepath)) {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                        FileOutputStream fileOutputStream = (FileOutputStream) CpuCameraActivity.this.getContentResolver().openOutputStream(Uri.parse(filepath));
+                                        GPUCameraRecorder.start(fileOutputStream.getFD());
+                                    } else {
+                                        realPath = AlbumUtils.getRealPath(CpuCameraActivity.this, Uri.parse(filepath));
+                                        GPUCameraRecorder.start(realPath);
+                                    }
 
-                            } else {
-                                realPath = filepath;
+                                } else {
+
+                                    GPUCameraRecorder.start(filepath);
+                                }
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
-                            GPUCameraRecorder.start(realPath);
+
+
 //                            recordBtn.setText("停止录像");
                         }
                         isStartRecord = !isStartRecord;
@@ -216,7 +230,7 @@ public class CpuCameraActivity extends BaseActivity {
                             public void run() {
                                 finish(); // 做一个延迟处理，不然刷新了以后还是没时间
                             }
-                        },1000);
+                        }, 1000);
 
                     }
 
@@ -326,7 +340,6 @@ public class CpuCameraActivity extends BaseActivity {
         }
 
     }
-
 
 
     private static void exportPngToGallery(Context context, String filePath) {

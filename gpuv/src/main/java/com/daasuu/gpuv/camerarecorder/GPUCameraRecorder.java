@@ -3,7 +3,9 @@ package com.daasuu.gpuv.camerarecorder;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraManager;
 import android.opengl.GLSurfaceView;
+import android.os.Build;
 import android.os.Handler;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.util.Size;
 import com.daasuu.gpuv.camerarecorder.capture.MediaAudioEncoder;
@@ -12,6 +14,8 @@ import com.daasuu.gpuv.camerarecorder.capture.MediaMuxerCaptureWrapper;
 import com.daasuu.gpuv.camerarecorder.capture.MediaVideoEncoder;
 import com.daasuu.gpuv.egl.GlPreviewRenderer;
 import com.daasuu.gpuv.egl.filter.GlFilter;
+
+import java.io.FileDescriptor;
 
 
 public class GPUCameraRecorder {
@@ -358,5 +362,50 @@ public class GPUCameraRecorder {
         return glPreviewRenderer;
     }
 
+    public void start(FileDescriptor fd) {
+        if (started) return;
+
+
+        new Handler().post(new Runnable() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void run() {
+                try {
+                    muxer = new MediaMuxerCaptureWrapper(fd);
+
+                    // for video capturing
+                    // ここにcamera width , heightもわたす。
+                    // 差分をいろいろと吸収する。
+                    new MediaVideoEncoder(
+                            muxer,
+                            mediaEncoderListener,
+                            fileWidth,
+                            fileHeight,
+                            flipHorizontal,
+                            flipVertical,
+                            glSurfaceView.getMeasuredWidth(),
+                            glSurfaceView.getMeasuredHeight(),
+                            recordNoFilter,
+                            glPreviewRenderer.getFilter()
+                    );
+                    if (!mute) {
+                        // for audio capturing
+                        new MediaAudioEncoder(muxer, mediaEncoderListener);
+                    }
+                    muxer.prepare();
+                    muxer.startRecording();
+
+                    if (cameraRecordListener != null) {
+                        cameraRecordListener.onRecordStart();
+                    }
+                } catch (Exception e) {
+                    notifyOnError(e);
+                }
+
+            }
+        });
+
+        started = true;
+    }
 }
 

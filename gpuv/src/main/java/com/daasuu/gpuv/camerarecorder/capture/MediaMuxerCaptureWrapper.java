@@ -3,12 +3,13 @@ package com.daasuu.gpuv.camerarecorder.capture;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
+import android.os.Build;
 import android.util.Log;
 
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
-
+import android.support.annotation.RequiresApi;
 
 public class MediaMuxerCaptureWrapper {
     private static final String TAG = "MediaMuxerWrapper";
@@ -25,9 +26,17 @@ public class MediaMuxerCaptureWrapper {
      */
     public MediaMuxerCaptureWrapper(final String filePath) throws IOException {
         mediaMuxer = new MediaMuxer(filePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+
         encoderCount = startedCount = 0;
         isStarted = false;
 
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public MediaMuxerCaptureWrapper(FileDescriptor fd) throws IOException {
+        mediaMuxer = new MediaMuxer(fd, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+        encoderCount = startedCount = 0;
+        isStarted = false;
     }
 
     public void prepare() throws IOException {
