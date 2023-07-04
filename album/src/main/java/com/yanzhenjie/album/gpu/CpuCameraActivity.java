@@ -1,6 +1,5 @@
 package com.yanzhenjie.album.gpu;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -10,10 +9,10 @@ import android.net.Uri;
 import android.opengl.GLException;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.URLUtil;
 import android.widget.FrameLayout;
 
 
@@ -22,6 +21,7 @@ import com.daasuu.gpuv.camerarecorder.GPUCameraRecorderBuilder;
 import com.daasuu.gpuv.camerarecorder.LensFacing;
 import com.yanzhenjie.album.R;
 import com.yanzhenjie.album.mvp.BaseActivity;
+import com.yanzhenjie.album.util.AlbumUtils;
 import com.yanzhenjie.album.util.SystemBar;
 import com.yanzhenjie.album.widget.CaptureView;
 
@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.IntBuffer;
 
 import javax.microedition.khronos.egl.EGL10;
@@ -51,6 +52,7 @@ public class CpuCameraActivity extends BaseActivity {
     private boolean isPortrait = true;
     private boolean isVideo = false;
     private boolean isStartRecord = false;
+    private String realPath;
     ;
 
     public static final String INSTANCE_CAMERA_IS_VIDEO = "INSTANCE_CAMERA_IS_VIDEO";
@@ -85,8 +87,8 @@ public class CpuCameraActivity extends BaseActivity {
             cameraWidth = 720;
             cameraHeight = 1280;
         } else {
-            videoWidth = 1280;
-            videoHeight = 720;
+            videoWidth = 720;
+            videoHeight = 1280;
             cameraWidth = 1280;
             cameraHeight = 720;
         }
@@ -110,7 +112,13 @@ public class CpuCameraActivity extends BaseActivity {
                             GPUCameraRecorder.stop();
 //                            recordBtn.setText("开始录像");
                         } else {
-                            GPUCameraRecorder.start(filepath);
+                            if (URLUtil.isContentUrl(filepath)) {
+                                realPath = AlbumUtils.getRealPath(CpuCameraActivity.this, Uri.parse(filepath));
+
+                            } else {
+                                realPath = filepath;
+                            }
+                            GPUCameraRecorder.start(realPath);
 //                            recordBtn.setText("停止录像");
                         }
                         isStartRecord = !isStartRecord;
@@ -124,7 +132,7 @@ public class CpuCameraActivity extends BaseActivity {
                                 @Override
                                 public void run() {
                                     saveAsPngImage(bitmap, filepath);
-                                    exportPngToGallery(CpuCameraActivity.this, filepath);
+
                                     setResult(RESULT_OK);
                                     finish();
                                 }
@@ -202,7 +210,14 @@ public class CpuCameraActivity extends BaseActivity {
 
                     @Override
                     public void onRecordComplete() {
-                        exportMp4ToGallery(getApplicationContext(), filepath);
+                        setResult(RESULT_OK);
+                        recordBtn.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                finish(); // 做一个延迟处理，不然刷新了以后还是没时间
+                            }
+                        },1000);
+
                     }
 
                     @Override
@@ -287,29 +302,32 @@ public class CpuCameraActivity extends BaseActivity {
     }
 
     public void saveAsPngImage(Bitmap bitmap, String filePath) {
-        try {
-            File file = new File(filePath);
-            FileOutputStream outStream = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outStream);
-            outStream.close();
+        if (URLUtil.isContentUrl(filePath)) {
+            Uri uri = Uri.parse(filePath);
+            try {
+                OutputStream outputStream = getContentResolver().openOutputStream(uri);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        } else {
+            try {
+                File file = new File(filePath);
+                FileOutputStream outStream = new FileOutputStream(file);
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, outStream);
+                outStream.close();
 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            exportPngToGallery(CpuCameraActivity.this, filepath);
         }
+
     }
 
 
-    public static void exportMp4ToGallery(Context context, String filePath) {
-        final ContentValues values = new ContentValues(2);
-        values.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4");
-        values.put(MediaStore.Video.Media.DATA, filePath);
-        context.getContentResolver().insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                values);
-        context.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
-                Uri.parse("file://" + filePath)));
-    }
 
     private static void exportPngToGallery(Context context, String filePath) {
         Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
@@ -324,5 +342,12 @@ public class CpuCameraActivity extends BaseActivity {
         outState.putString(INSTANCE_CAMERA_FILE_PATH, filepath);
         outState.putBoolean(INSTANCE_CAMERA_IS_VIDEO, isVideo);
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onBackPressed() {
+        setResult(RESULT_CANCELED);
+        super.onBackPressed();
+
     }
 }

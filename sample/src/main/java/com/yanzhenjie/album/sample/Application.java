@@ -17,6 +17,7 @@ package com.yanzhenjie.album.sample;
 
 import com.yanzhenjie.album.Album;
 import com.yanzhenjie.album.AlbumConfig;
+import com.yanzhenjie.album.gpu.GPUCamreaManager;
 
 import java.util.Locale;
 
@@ -39,6 +40,7 @@ public class Application extends android.app.Application {
                     .setLocale(Locale.getDefault())
                     .build()
             );
+            GPUCamreaManager.getInstance().setUseGPUCamera(true);
         }
     }
 
